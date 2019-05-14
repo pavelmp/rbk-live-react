@@ -108,18 +108,22 @@ class App extends React.Component {
       }
       //Got token
       const token = body.token;
-      this.setState({username: '', password: '', errorMessage: '', token: token});
+      localStorage.setItem('token', token);
+      this.setState({username: '', password: '', errorMessage: ''});
       this.getPlaces();
     });
   }
 
   getPlaces(){
+    const token = localStorage.getItem('token');
+    console.log(token)
     fetch('http://127.0.0.1:5000/places', {
       method: 'get',
-      headers: {"x-access-token": this.state.token }
+      headers: {"x-access-token": token }
     }).then((response) => {
       return response.json();
     }).then((body) => {
+      console.log(body);
       if(body.error){
         return this.setState({errorMessage: body.error})
       };
@@ -128,7 +132,6 @@ class App extends React.Component {
   }
   
   render(){
-    console.log('Rendered');
     return (
       <div className="App">
         <header className="App-header">
@@ -140,7 +143,7 @@ class App extends React.Component {
                       redirect={(whatPageToShow) => this.redirect(whatPageToShow)} />
             : this.state.whatPageToShow === 'signIn'
               ? <SignIn username={this.state.username} password={this.state.password} onChange={event => this.onChange(event)} signIn={() => this.signIn()}/>
-              : this.state.whatPageToShow === 'places' && this.state.token
+              : this.state.whatPageToShow === 'places'
                 ? <Places places={this.state.places}/>
                 : null
           }
