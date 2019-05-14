@@ -46,7 +46,8 @@ class App extends React.Component {
       username: '',
       password: '',
       whatPageToShow: 'signUp',
-      places: [{location: 'City Mall', distance: 500}]
+      places: [{location: 'City Mall', distance: 500}],
+      errorMessage: ''
     }
   }
 
@@ -71,14 +72,15 @@ class App extends React.Component {
       method: 'post',
       body: JSON.stringify(body),
       headers: {"Content-Type": "application/json"}
-    }).then(function(response) {
+    }).then((response) => {
       return response.text();
-    }).then(function(data) {
-      console.log(data);
+    }).then((textReply) => {
+      if(textReply === 'This username is already taken'){
+        this.setState({errorMessage: textReply})
+      };
+      // console.log(data);
+      // this.setState({whatPageToShow: 'signIn', username: '', password: ''})  
     });
-
-
-    // this.setState({whatPageToShow: 'signIn', username: '', password: ''})
   }
 
   signIn(){
@@ -98,6 +100,11 @@ class App extends React.Component {
               : this.state.whatPageToShow === 'places'
                 ? <Places places={this.state.places}/>
                 : null
+          }
+          {
+            this.state.errorMessage 
+              ? <p>{this.state.errorMessage}</p>
+              : null
           }
         </header>
       </div>
