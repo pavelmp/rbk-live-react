@@ -8,6 +8,7 @@ const SignUp = function(props){
       <input type='text' placeholder='username' value={props.username} onChange={event => props.onChange(event)} name="username"/>
       <input type='text' placeholder='password' value={props.password} onChange={event => props.onChange(event)} name="password"/>
       <button onClick={() => props.signUp()}>Sign Up</button>
+      <button onClick={() => props.signUp()}>Already signed up? Sign in here</button>
     </div>
   );
 };
@@ -47,7 +48,8 @@ class App extends React.Component {
       password: '',
       whatPageToShow: 'signUp',
       places: [{location: 'City Mall', distance: 500}],
-      errorMessage: ''
+      errorMessage: '',
+      token: ''
     }
   }
 
@@ -59,6 +61,10 @@ class App extends React.Component {
     console.log('Called componentWillMount')
   }
 
+  redirect(whatPageToShow){
+    this.setState({whatPageToShow: whatPageToShow});
+  }
+
   onChange(event){
     const name = event.target.name;
     const value = event.target.value;
@@ -68,7 +74,7 @@ class App extends React.Component {
   signUp(){
     //Call API to sign up with username and password
     const body = {username: this.state.username, password: this.state.password};
-    fetch('http://localhost:5000/signup', {
+    fetch('http://127.0.0.1:5000/signup', {
       method: 'post',
       body: JSON.stringify(body),
       headers: {"Content-Type": "application/json"}
@@ -77,15 +83,48 @@ class App extends React.Component {
     }).then((textReply) => {
       if(textReply === 'This username is already taken'){
         this.setState({errorMessage: textReply})
-      };
-      // console.log(data);
-      // this.setState({whatPageToShow: 'signIn', username: '', password: ''})  
+      } else {
+        this.setState({whatPageToShow: 'signIn', username: '', password: '', errorMessage: ''})
+      }
     });
   }
 
   signIn(){
     //Call API to sign in with username and password
-    this.setState({whatPageToShow: 'places', username: '', password: ''})
+    const body = {username: this.state.username, password: this.state.password};
+    fetch('http://127.0.0.1:5000/signin', {
+      method: 'post',
+      body: JSON.stringify(body),
+      headers: {"Content-Type": "application/json"}
+    }).then((response) => {
+      return response.json();
+    }).then((body) => {
+      if(body.error){
+        if(body.error === 'Please sign in'){
+          return this.setState({whatPageToShow: 'signIn', username: '', password: '', errorMessage: ''})  
+        } else {
+          return this.setState({errorMessage: body.error})
+        }
+      }
+      //Got token
+      const token = body.token;
+      this.setState({username: '', password: '', errorMessage: '', token: token});
+      this.getPlaces();
+    });
+  }
+
+  getPlaces(){
+    fetch('http://127.0.0.1:5000/places', {
+      method: 'get',
+      headers: {"x-access-token": this.state.token }
+    }).then((response) => {
+      return response.json();
+    }).then((body) => {
+      if(body.error){
+        return this.setState({errorMessage: body.error})
+      };
+      return this.setState({places: body.places, whatPageToShow: 'places'})
+    })
   }
   
   render(){
@@ -94,10 +133,14 @@ class App extends React.Component {
       <div className="App">
         <header className="App-header">
           { this.state.whatPageToShow === 'signUp'
-            ? <SignUp username={this.state.username} password={this.state.password} onChange={event => this.onChange(event)} signUp={() => this.signUp()}/>
+            ? <SignUp username={this.state.username} 
+                      password={this.state.password} 
+                      onChange={event => this.onChange(event)} 
+                      signUp={() => this.signUp()}
+                      redirect={(whatPageToShow) => this.redirect(whatPageToShow)} />
             : this.state.whatPageToShow === 'signIn'
               ? <SignIn username={this.state.username} password={this.state.password} onChange={event => this.onChange(event)} signIn={() => this.signIn()}/>
-              : this.state.whatPageToShow === 'places'
+              : this.state.whatPageToShow === 'places' && this.state.token
                 ? <Places places={this.state.places}/>
                 : null
           }
