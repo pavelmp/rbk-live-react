@@ -8,7 +8,7 @@ const SignUp = function(props){
       <input type='text' placeholder='username' value={props.username} onChange={event => props.onChange(event)} name="username"/>
       <input type='text' placeholder='password' value={props.password} onChange={event => props.onChange(event)} name="password"/>
       <button onClick={() => props.signUp()}>Sign Up</button>
-      <button onClick={() => props.signUp()}>Already signed up? Sign in here</button>
+      <button onClick={() => props.redirect('signIn')}>Already signed up? Sign in here</button>
     </div>
   );
 };
