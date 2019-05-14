@@ -1,0 +1,8 @@
+Components:
+1) Signin - Done
+2) Signup - Done
+3) Places - Done
+4) New Places
+
+lifecycle methods:
+https://programmingwithmosh.com/javascript/react-lifecycle-methods/
